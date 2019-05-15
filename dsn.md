@@ -13,7 +13,7 @@ from Customers as c
 left join Orders as o
 on c.CustomerID = o.CustomerID
 where o.OrderDate >= "1997-01-01"
-group by c.CustomerID
+group by c.CustomerName
 having n_orders > 0;
 ```
 
@@ -278,13 +278,13 @@ Newton's method for finding the zeros of a function f:
 
 $$w := w - \frac {f(w)}{f'(w)}$$
 
-Newton's method for the optimum of a function l:
+Newton's method for the optimum of a function f:
 
-$$w := w - \frac {l'(w)}{l''(w)}$$
+$$w := w - \frac {f'(w)}{f''(w)}$$
 
-Newton-Raphson for multidimensional optimum of l:
+Newton-Raphson for multidimensional optimum of f:
 
-$$w := w - H_w^{-1} \nabla_w l(w)  $$
+$$w := w - H_w^{-1} \nabla_w f(w)  $$
 
 
 ## Machine learning generalities
@@ -514,7 +514,7 @@ so:
 
 The gaussian with unit variance can be written:
 
-$$\frac 1 {\sqrt{2\pi}} \exp (-y^2 / 2) \exp(\mu y - \mu^2 / 2)$$
+$$\frac 1 {\sqrt{2\pi}} \exp (- \frac {(y - \mu)^2} 2 ) = \frac 1 {\sqrt{2\pi}} \exp (-y^2 / 2) \exp(\mu y - \mu^2 / 2)$$
 
 so:
 
@@ -601,16 +601,16 @@ Inputs should be normalized so the cost function is more "round" and easier to o
 
 Dropout regularization:
 
-- Set activations to 0 with probability 1-keep_prob
-- Divide the remaining activations by keep_prob to compensate the drop in average prediction
-- keep_prob can be lower on larger layers more prone to overfitting
-- only at training time
+- Set activations to 0 with probability R
+- Divide the remaining activations by 1-R to compensate the drop in average activation
+- R can be higher on larger layers more prone to overfitting
+- Only at training time
 - Very useful in computer vision
 - Makes the cost / step graph harder to analyse
 
 Early stopping:
 
-- Stop when dev set error starts to increase
+- Stop when dev error starts to increase
 - Acts as regularization (weights stay close to the linear zone)
 - Mixes optimization and regularization that are normally independant
 
@@ -724,7 +724,7 @@ with $n^{[l]} = \lfloor (n^{[l-1]} + 2p^{[l]} - f^{[l]})/s^{[l]} \rfloor + 1$
 
 Pooling:
 
-- Take max instead of sum
+- Take max instead of weighted sum
 - No weights to learn 
 - Applies to each channel
 - Common choice f=s=2, p=0
@@ -740,6 +740,8 @@ Classic networks
 Residual Networks
 
 - Shortcut / skip connection are added: $a = g(z + a^{[-2]} $
+- Less vanishing or exploding gradient problems
+- Can learn identity easily
 - Allows to train deeper networks
 
 Network in network or 1x1 convolution
@@ -780,6 +782,65 @@ Tips for doing well on benchmarks or competitions
 - 10-crop : run classifier on 10 crops of the image and average
 - start with pre-trained open source implementation
 
+## Image detection
+
+Classification with localization
+
+- output is (object_is_present, bounding box params, proba of categories)
+- $y = [p_c, b_x, b_y, b_h, b_w, c_1, c_2, c_3]^T$ 
+- if object not present, the loss ignores the full output
+
+Landmark Detection
+
+- output is (object_is_present, landmark1_x, landmark1_y...)
+- position of eyes, chin, shoulder...
+
+Sliding window detection
+
+- Pick a window size
+- Slide the window through the image and apply the classifier convnet
+- Increase window size and repeat
+- Expensive computationally
+- Can be computed faster in one convnet by replacing FC layers by 1x1 conv layers, so the output is a grid of results for each sliding layer
+- Not extremelly accurate
+
+YOLO algo to improve accuracy
+
+- Split the image in 19x19 subimages and define a 8 dimension classification with localization output for each subimage, the bounding box being first the position of the center, and then the height and width relative to the subimage dimensions 
+- Build a convnet to predict the 19x19x8 outputs
+- For each subimage you extract the bounding box if present
+- Hard paper to read !
+
+Evaluation of localization
+
+- IoU, intersection over union of the boxes > 0.5 is considered good
+
+Avoid duplicate detections
+
+- Suppose output is (pc, bx, by, bh, bw) for each 19x19 subimage
+- Discard all boxes with pc < 0.6
+- Repeat until no more boxes:
+    - Pick the box B with max pc
+    - Discard boxes overlaping with B (IoU > 0.5)  
+
+Overlapping objects
+
+- We can detect 2 objects of different shape in the same cell by defining 2 anchor boxes, one vertical for pedestrian, one horizontal for cars
+- Each object in training is assigned to a cell (cell contains midpoint) AND an anchor box (highest IoU with bounding box)
+- Anchor boxes may be chosen automatically by clustering the set of boxes
+
+Face detection
+
+- Siamese network $f(Image)$ gives encoding
+- Anchor image, Positive image, Negative image: $A, P, N$
+- Triplet loss $L(A, P, N) = \max(d(A, P) - d(A, N) + \alpha , 0)$
+- Training set: 10k pictures of 1k people
+- Choose A, P, N so that $d(A, P) \approx d(A, N)$, so the learning is more effective
+- See DeepFace and FaceNet 
+- Instead of the triplet loss, a binary classifier can be learned to compare the encodings from the siamese networks: $\hat y = \sigma(\sigma w_k |f(x)_k - f(x')_k| + b)$
+
+## Sequence models
+
 
 ## Support Vector Machines
 
@@ -799,7 +860,7 @@ Introducing the Lagrangian:
 
 $$\mathcal L(w, b, \epsilon, \alpha, r) = \frac 1 2 w^T w + C \sum_i \epsilon_i - \sum_i \alpha_i [y_i(x_i^T w + b) -1 + \epsilon_i] - \sum_i r_i \epsilon_i$$
 
-and deriving w.r.t. w we find that:
+and deriving w.r.t. $w$ we find that:
 
 $$w = \sum_i \alpha_i y_i x_i$$
 
@@ -995,20 +1056,20 @@ where $\hat p_{-i}$ is the estimator build on all points minus the point i.
 
 ## Principal Component Analysis
 
-We want to project the data on a smaller dimension space while keeping the maximum variance, or equivalently, linearly encode and decode the data points $x$ into a smaller dimensional code $z$ with minimal L2 reconstruction error.
+We want to project the data on a smaller dimension space while keeping the maximum variance, or equivalently, linearly encode and decode the dataset $X$ into a smaller dimensional dataset $Z$ with minimal L2 reconstruction error.
 
 The data should be normalized first to avoid overweighting the large variables. Note that normalization may affect the sparcity of matrices.
 
-Supposing the decoder is $r = Wz$, W columns being orthonormal, we can prove that the optimal encoder is $z = W^Tx$, so the optimal reconstruction is:
+Supposing the decoder is $R = ZW^T$, W columns being orthonormal, we can prove that the optimal encoder is $Z = XW$, so the optimal reconstruction is:
 
-$$r = WW^Tx$$
+$$R = XWW^T$$
 
 Then we can prove that the optimal matrix $W_t$ is  the truncated matrix of eigen vectors of $X^TX$, keeping only the vectors with the largest eigen values from:
 
 $$X^T X = W S W^T$$
 
 Note that $Z=XW_t$ so 
-$\hat{Var}(Z) = \frac 1 {n-1} Z^T Z = \frac 1 {n-1} W_t^T X^T X W_t      = \frac 1 {n-1} W_t^T W S W^T W_t = \frac 1 {n-1} S_t$. 
+$\hat{Var}(Z) = \frac 1 {n-1} Z^T Z = \frac 1 {n-1} W_t^T X^T X W_t = \frac 1 {n-1} W_t^T W S W^T W_t = \frac 1 {n-1} S_t$. 
 So the components of z are uncorrelated.
 
 The same result can be obtained by SVD of X:
