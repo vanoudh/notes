@@ -631,7 +631,7 @@ Gradient checking:
 
 Minibatch:
 
-- Split the dataset in packet of 1000
+- Split the dataset in packet of 512
 - Run vectorized gradient descent on each packet
 - All the packets = 1 epoch
 - Much faster than full batch on large datasets
@@ -679,7 +679,7 @@ Inportance of hyper parameters tuning:
 1. #layers, learning rate decay
 1. adam parameters
 
-Use random search, from coarse to fine, with logarithm scale for $alpha$, $1-\beta$.
+Use random search, from coarse to fine, with logarithm scale for $\alpha$, $1-\beta$.
 
 If you have a lot of compute power use // training, otherwise use "baby sitting" approach to tuning.
 
@@ -739,7 +739,7 @@ Classic networks
 
 Residual Networks
 
-- Shortcut / skip connection are added: $a = g(z + a^{[-2]} $
+- Shortcut / skip connection are added: $a^{[l]} = g(z + a^{[l-2]})$
 - Less vanishing or exploding gradient problems
 - Can learn identity easily
 - Allows to train deeper networks
@@ -837,9 +837,335 @@ Face detection
 - Training set: 10k pictures of 1k people
 - Choose A, P, N so that $d(A, P) \approx d(A, N)$, so the learning is more effective
 - See DeepFace and FaceNet 
-- Instead of the triplet loss, a binary classifier can be learned to compare the encodings from the siamese networks: $\hat y = \sigma(\sigma w_k |f(x)_k - f(x')_k| + b)$
+- Instead of the triplet loss, a binary classifier can be learned to compare the encodings from the siamese networks: $\hat y = \sigma(\sum_k w_k |f(x)_k - f(x')_k| + b)$
 
 ## Sequence models
+
+Take the problem of NER in a phrase. It does not fit very well into a standard DNN because:
+
+- inputs / outputs can be of different length $T_x <> T_y$ 
+- features can be learned accross different positions of text
+- the number of parameters would be huge
+
+RNN have the following structure:
+
+```
+        | a0 = 0
+        v
+x1 -> |ooo| -> y1
+        | a1
+        v
+x2 -> |ooo| -> y2
+        | a2
+        v
+x3 -> |ooo| -> y3
+        | a3
+        v
+x4 -> |ooo| -> y4
+        .
+        .
+        .
+```
+
+Bidirectional RNN can use information before and after a particular step.
+
+The forward propagation is formally:
+
+$$a^{<1>} = g(W_a [a^{<0>}, x^{<1>}] + b_a)$$
+
+$$\hat y^{<1>} = g(W_y a^{<1>} + b_y)$$
+
+
+- The parameters W are shared accross all time steps
+- The brackets indicate vertical stacking of vectors
+- g is generally tanh, can be relu
+
+Loss is $\sum_t L(\hat y^{<t>}, y^{<t>})$ where L is the logistic loss $- \sum_i y_i \log \hat y_i$
+
+Different RNN architectures:
+
+- Tagging, $T_x = T_y$: many-to-many
+- Machine translation, $T_x \neq T_y$: many-to-many
+- Sentiment classification, only the last y is outputed: many-to-one
+- Music generation, only the first x is inputed: one-to-many
+- Standard DNN: one-to-one
+
+Language modelling with RNN:
+
+- Tokenize: map words to a dictionary, including UNK and EOS
+- $x^{<t>} = y^{<t-1>}$ is the preceding word at t
+- $y^{<t>}$ is the actual word at t
+- $\hat y^{<t>} = p(y^{<t>}|y^{<t-1>}, y^{<t-2>}...)$
+- The product of $\hat y^{<t>}$ gives the probability of the sentence
+- Works at character level too. No need for a dictionary. Harder to train and to capture long dependencies. 
+- Can be used easily for text generation
+
+Vanishing gradient
+
+- Deep networks and RNN are affected by vanishing gradients (counpounding of weights)
+- Hard to influence the end of the sentence from the beginning of the sentence, which is a problem for grammar (subject -> verb)
+- Exploding gradient is also possible and easier to handle (gradient clipping)
+
+Gated Recurrent Unit (simplified)
+
+- A memory cell c is kept at time t (it replaces the activation a)
+- A new proposed memory cell is computed
+- A gate controls if the update is used or if we stay with the old value
+- Memory can be a vector, in this case the gate is also a vector
+
+$$\Gamma_u = \sigma(W_u [c^{<t-1>}, x^{<t>}] + b_u)$$
+
+$$\tilde{c}^{<t>} = \tanh(W_c [c^{<t-1>}, x^{<t>}] + b_c)$$
+
+$$c^{<t>} = \Gamma_u * \tilde{c}^{<t>} + (1 - \Gamma_u) * c^{<t-1>}$$
+
+$$a^{<t>} = c^{<t>}$$
+
+Gated Recurrent Unit
+
+- Update and relevance gate
+
+$$\Gamma_u = \sigma(W_u [c^{<t-1>}, x^{<t>}] + b_u)$$
+
+$$\Gamma_r = \sigma(W_r [c^{<t-1>}, x^{<t>}] + b_r)$$
+
+$$\tilde{c}^{<t>} = \tanh(W_c [\Gamma_r c^{<t-1>}, x^{<t>}] + b_c)$$
+
+$$c^{<t>} = \Gamma_u * \tilde{c}^{<t>} + (1 - \Gamma_u) * c^{<t-1>}$$
+
+$$a^{<t>} = c^{<t>}$$
+
+LSTM
+
+- $a \neq c$
+- Update, forget and output gates
+
+$$\Gamma_u = \sigma(W_u [a^{<t-1>}, x^{<t>}] + b_u)$$
+
+$$\Gamma_f = \sigma(W_f [a^{<t-1>}, x^{<t>}] + b_f)$$
+
+$$\Gamma_o = \sigma(W_r [a^{<t-1>}, x^{<t>}] + b_r)$$
+
+$$\tilde{c}^{<t>} = \tanh(W_c [a^{<t-1>}, x^{<t>}] + b_c)$$
+
+$$c^{<t>} = \Gamma_u * \tilde{c}^{<t>} + \Gamma_f * c^{<t-1>}$$
+
+$$a^{<t>} = \Gamma_o * \tanh c^{<t>}$$
+
+
+GRU are more recent but actually a simplification of LSTM. They are a bit more scalable because more simple.
+
+BRNN
+
+- Each step gets a forward and a backward activation
+- Prediction gets the concatenated forward and backward activations as input
+- Cannot make a prediction before the the end of the sequence is read (not great for speech recognition)
+
+Deep RNN
+
+- Instead of having just one activation between x and y, several activation layers can be stacked in between
+- Only a few layers are used in practice
+
+
+Word embeddings
+
+- Embeddings carry more information than one-hot
+- Can be visualised by t-SNE
+- They allow you to do transfer learning (use embeddings trained on huge datasets for your small dataset task)
+- Embeddings arithmetic works: man - woman is similar to king - queen
+- Cosine similarity: scalar product divided by norms
+
+Embedding matrix
+
+- E is (300 x 10000), containing the embeddings of each word in columns
+- $E o_j = e_j$, $o_j$ being the one-hot encoding of word j (but using 
+multiplication is slow in practice)
+
+Learning embeddings
+
+- The embedding matrix is included and learned in a language model 
+(predicting the next word) 
+- Embeddings can be more efficiently learned within a dedicated task, rather 
+than an accurate language model
+- Skip gram : predict a target word with only one nearby word as input
+
+Word2vec
+
+- Simple model to predict the target: embedding matrix -> softmax
+- Softmax is slow because 10,000 vocabulary terms in the denominator
+- Hierarchical softmax (tree of binary classifiers) scales in log|V|
+- Negative sampling
+- Mikolov
+
+Negative sampling
+
+- Instead of predicting the target word, we predict if a given 
+(context c, target t) is coherent (the target is in the context)
+- The positive samples are taken from the training sentences
+- For each positive sample, k negative samples are generated by picking 
+random words as targets
+
+GloVe word vectors
+
+- Simply optimize for the embeddings $\theta$ and $e$ so that scalar product is close to 
+log of frequency of co-appearence
+- Then take the average of $\theta$ and $e$, as they play a symmetric role
+
+Sentiment classification
+
+- Average the embeddings of the words in the sentence and then softmax
+- RNN many-to-one
+
+Debiasing word embeddings
+
+1. Identify bias direction by averaging he - she, male - female etc...
+1. Project every non definitional word to get rid of bias
+1. Equalize grandmother - grandfather = girl - boy = ...
+ 
+ 
+Attention model...
+
+## Deep Learning Project Management
+
+Orthogonalization
+
+- Think of analog TV tuning, we want one effect only per control
+
+Chain of ML assumptions and possible tuning:
+
+1. fit training set well (bigger network, adam...)
+1. fit dev set (regularization, bigger training set)
+1. fit test set (bigger dev set)
+1. does well in real world (change dev set or cost function)
+
+Early stopping affects step 1 and 2, so not so easy to tune.
+
+Metrics:
+
+- Choose a single number evaluation metric, and possibly a satisficing metric (eg running time <= 100ms)
+- N metrics : 1 optimizing, N-1 satisficing
+- Example : optimize accuracy st # false positive <= 1 per day
+
+Train/dev/test
+
+- dev and test set should come from the *same* distribution
+- should reflect data you expect to get in the future
+- dev and test set size = min(m/5, 10000)
+- test set may be 0, if you dont care and can test in real
+
+When to change dev/test set or metrics
+
+- Model A is better according to metric but not according to humans ( maybe a class is more important -> weight the accuracy )
+- Model A does better on dev/test but not on real data 
+
+Human level performance
+
+- improvment tends to slow down above human level
+    - because of bayes optimal perf
+    - because you can no longer ask humans for help!
+- human level is a good proxy for bayes error
+- aim for best human level error on your training set (remove avoidable bias), then work on dev set (remove variance)
+- hard to beat on perception tasks
+
+Summary
+
+```
+Human-level
+^
+|  Avoidable bias <- bigger model/train longer/optimizer/archi
+v
+Training error
+^
+|  Variance <- more data/data augmentation/regularization
+v
+Dev error
+^
+|  Dev set overfit <- more data in the dev set
+v
+Test error
+```
+
+Error analysis is key
+
+- look at 100 mislabeled examples
+- if 5 of mislabeled exampled are type A, working on type A is not necessarily the best use of your time
+- count the type of problem for each 100 mislabeled example 
+- problem can come from the dataset (wrong label)
+- work on the most common problems
+
+Cleaning up wrong labels in data set
+
+- if the errors are reasonably random, it may be ok to leave them
+- if the error is systematic (eg all white dogs are labelled cats) it is more important to fix it
+- compute the contribution of wrong labels in the total error, to see if you should work on fixing labels
+- make sure the dev and test sets remain equally distributed
+- train set may remain uncorrected, algos are robust to that
+- consider examining the correctly identified examples as well 
+
+Build the first system quickly, then iterate
+
+- unless you have a lot of previous experience or litterature on the pb
+
+Training and testing on different distributions
+
+- You may have less examples from the distribution you really care about (the one closest to real data)
+- So distributing them proportionally (say 90/5/5) in train/dev/test would under-represent them in the dev/test
+- Better to over-represent them in the dev/test sets (say 50/25/25), even if that breaks the training / dev similarity
+- In this case you may want to add a training-dev set, extracted from the training set, so you have a dev set with the same distribution as training, and you can distinguish variance error from change of distribution error (data mismatch)
+
+Data mismatch
+
+- try manual error analysis to understand the difference between training and dev/test sets
+- for example, your dev/test sets may contain "in car background noise", so you can try simulating this kind of background noise in your training set
+- when synthetizing data, be careful not to make the training data too specialized (eg by using only one hour of car noise to add to 10,000 hours of speech, or using image synthesis software), thus impoverishing the training data and you will probably overfit
+
+
+```
+Human-level
+^
+|  Avoidable bias <- bigger model/train longer/optimizer/archi
+v
+Training error
+^
+|  Variance <- more data/data augmentation/regularization
+v
+Train-Dev error
+^
+|  Data mismatch <- more data/data synthesis in train
+v
+Dev error
+^
+|  Dev set overfit <- more data in the dev set
+v
+Test error
+```
+
+Transfer learning
+
+- change the last layer of your network
+- retrain only the last layer
+- if you have enough data you may retrain more layers
+- if you have enough data to retrain the whole network from scratch, you don't need transfer learning
+
+Multi-task learning
+
+- learning several tasks (multi label) at the same time may work better than multiple single task learning
+- task may share low level features
+- works better is amount of data is similar in each task
+- you need enough data to train one big NN
+- not used very often, mostly on computer vision 
+
+End to end deep learning
+
+- in constrast to traditional pipelined approach
+- can work better if you have enough data:
+    - speech recognition: sound -> transcript
+    - translation: english -> french
+- not always better
+    - identification = face detection + face identification
+
+
+
 
 
 ## Support Vector Machines
@@ -1354,3 +1680,8 @@ If the state space is continuous and high dimensional we can approximate the val
 [Loss functions*](http://cs229.stanford.edu/notes/cs229-notes-all/loss-functions.pdf)
 
 [Representer theorem*](http://cs229.stanford.edu/notes/cs229-notes-all/representer-function.pdf)
+
+
+
+
+
