@@ -1157,15 +1157,14 @@ Multi-task learning
 
 End to end deep learning
 
-- in constrast to traditional pipelined approach
+- direct mapping from x to y in constrast to traditional pipelined approach
+- no need for hand designed components and kwnoledge
 - can work better if you have enough data:
     - speech recognition: sound -> transcript
     - translation: english -> french
 - not always better
     - identification = face detection + face identification
-
-
-
+    - self driving = object detection + motion planning + control
 
 
 ## Support Vector Machines
