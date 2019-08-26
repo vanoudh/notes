@@ -1681,6 +1681,3 @@ If the state space is continuous and high dimensional we can approximate the val
 [Representer theorem*](http://cs229.stanford.edu/notes/cs229-notes-all/representer-function.pdf)
 
 
-
-
-
