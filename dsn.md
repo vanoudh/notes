@@ -21,34 +21,33 @@ Below are two more complex examples.
 
 You have a table named *users* with two fields:
 
-- id 
+- id
 - friend_id
 
 The following request gives the number of common friends between each pair of users, in ascending order:
 
-
-```
+```sql
 with unique_ids as (
         select distinct id
         from users
      ),
      couples as (
-        select list1.id as id1, list2.id as id2 
-        from unique_ids as list1 
-        cross join unique_ids as list2 
+        select list1.id as id1, list2.id as id2
+        from unique_ids as list1
+        cross join unique_ids as list2
         where list1.id < list2.id
      )
-select	
-    id1, 
-    id2, 
-    (select count(*) 
-     from (select count(t.friend_id) as cc 
-           from users t 
-           where t.id in (id1, id2) 
-           group by t.friend_id 
+select
+    id1,
+    id2,
+    (select count(*)
+     from (select count(t.friend_id) as cc
+           from users t
+           where t.id in (id1, id2)
+           group by t.friend_id
            having cc > 1)) as number_of_cc
 from couples
-order by number_of_cc asc; 
+order by number_of_cc asc;
 ```
 
 You have a table named *logs* with two fields:
@@ -58,7 +57,7 @@ You have a table named *logs* with two fields:
 
 The following request gives the users who where churned but resuscitated on 2010-06-12:
 
-```
+```sql
 with churned as (
     select id 
     from logs 
@@ -271,7 +270,6 @@ Gibbs sampling is used for multivariate distributions, it works by sampling sequ
 
 Metropolis Hasting is a generalization of Gibbs and rejection sampling, where we generate the sequence from q and then reject probabilistically to adjust on $p$. 
 
-
 ## Optimization
 
 Newton's method for finding the zeros of a function f:
@@ -285,7 +283,6 @@ $$w := w - \frac {f'(w)}{f''(w)}$$
 Newton-Raphson for multidimensional optimum of f:
 
 $$w := w - H_w^{-1} \nabla_w f(w)  $$
-
 
 ## Machine learning generalities
 
@@ -320,7 +317,6 @@ Example of loss functions for classification where $y = +- 1$, $\hat y = sign(z)
 - $[1 - yz]_+$ : Hinge
 - $\exp(-yz)$ : Exponential
 
-
 The generalization performance of the model is evaluated on a test set, not used for optimization (training), the different variants are:
 
 - hold-out cross validation (80% train / 20% test)
@@ -338,7 +334,6 @@ Simple machine learning recipe (solve first problem first):
 |High bias (training error >> bayes error)|More parameters / train longer / change model|
 |High variance (dev error >>  train error)|More data / regularization / change model|
 
-
 Feature selection can be done in a generic way:
 
 - forward selection: start with 0 features and add the best feature at each step
@@ -350,7 +345,6 @@ Correlation scores can be:
 - $MI(x, y) = KL(p(x, y)||p(x)p(y))$, mutual information
 - chi2
 - cramer V (normalised chi2)
-
 
 Variable importance can be evaluated in a model agnostic way, by permuting the values of the variable between different samples, and measure the effect on performance.
 
@@ -367,6 +361,8 @@ $$g_X(x) = E[f(X, Y)  |X=x] = \int f(x, y)p(y|x)dy$$
 In particular if $f(x, y) = E[Z|X=x, Y=y]$, then $E[Z|X=x]$ is not the partial dependance on x, it is the conditional expectation.
 
 Averaged over all possible data-generating distributions, every classification algorithm has the same error rate on new data points. This is called the no free lunch theorem. In the real world some data distributions are more common, and it is possible to design algorithms that perform better on these distributions.
+
+Multilabel as binary classification. #todo
 
 ## Representer theorem and kernel models
 
@@ -409,7 +405,6 @@ Further reading:
 # Supervised models
 
 ## Ordinary least squares linear regression (OLS)
-
 
 $$y_i \sim \mathcal{N}(w^T x_i, \sigma^2), iid$$
 $$\mu_i = w^T x_i = E[y_i|x_i]$$
@@ -1561,7 +1556,7 @@ SARIMA $(p, d, q, P, Q, D)_s$:
 
 - dependency on t-12 for example in monthly data (s=12)
 
-Modeling:
+Modeling (Box-Jenkins method):
 
 - Plot
 - Trend suggests differencing
@@ -1679,5 +1674,4 @@ If the state space is continuous and high dimensional we can approximate the val
 [Loss functions*](http://cs229.stanford.edu/notes/cs229-notes-all/loss-functions.pdf)
 
 [Representer theorem*](http://cs229.stanford.edu/notes/cs229-notes-all/representer-function.pdf)
-
 
