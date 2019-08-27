@@ -59,16 +59,16 @@ The following request gives the users who where churned but resuscitated on 2010
 
 ```sql
 with churned as (
-    select id 
-    from logs 
+    select id
+    from logs
     where time <= datetime('2010-06-11') 
-    group by id 
+    group by id
     having julianday(max(time)) < julianday('2010-06-11') - 30
     )
 select id
-from logs 
+from logs
 where time >= datetime('2010-06-12') and id in churned
-group by id 
+group by id
 having min(time) = datetime('2010-06-12');
 ```
 
@@ -117,55 +117,49 @@ If $X$ is centered then:
 
 $$Var(X) = E[XX^T] \quad \text{and} \quad \hat{Var}(X) = \frac 1 {n-1} X^TX$$
 
-
-Todo : linear and non linear change of variable.
-
+TODO : linear and non linear change of variable.
 
 Characteristic function of a distribution $f$:
 
 $$\phi_f(w) = \int f(x)e^{iwx} dx \quad \text{and} \quad E[X^k] = \frac 1 {i^k} \frac {\partial^k \phi} {\partial w^k}(0)$$
 
-
 Bayes:
 
-$$P(w|X) = \frac {P(X|w)P(w)} {P(X)} = \frac {P(X|w)P(w)} {\int_w P(X|w)P(w)} $$
-
+  $$P(w|X) = \frac {P(X|w)P(w)} {P(X)} = \frac {P(X|w)P(w)} {\int_w P(X|w)P(w)} $$
 
 Total expectation:
 
-$$E \big[ E[X|Y,Z] \big] = E[X]$$
+  $$E \big[ E[X|Y,Z] \big] = E[X]$$
 
 and
 
-$$E \big[ E[X|Y,Z]|Y \big] = E[X|Y]$$
+  $$E \big[ E[X|Y,Z]|Y \big] = E[X|Y]$$
 
 in particular we can decompose:
 
-$$E[X]= \sum_y p(y) E[X|Y=y] $$
-
+  $$E[X]= \sum_y p(y) E[X|Y=y] $$
 
 For $X \geq 0$ and $t \geq 0$ we have:
 
-$$P(X \geq t) \leq \frac {E[X]} {t} \quad \text{ (Markov)}$$
+  $$P(X \geq t) \leq \frac {E[X]} {t} \quad \text{ (Markov)}$$
 
 For $X \sim \mu, \sigma$ we have:
 
-$$P(|X-\mu| > k \sigma) <= \frac 1 {k^2} \quad \text{ (Chebyshev)}$$
+  $$P(|X-\mu| > k \sigma) <= \frac 1 {k^2} \quad \text{ (Chebyshev)}$$
 
 For $X_i \sim \mu, \sigma$ identically distributed and $S_n = \frac 1 n \sum_1^n X_i$ we have:
 
 - if pairwise correlated with correlation $\rho$
 
-$$\frac {Var(S_n)}  {\sigma^2} = \rho + \frac {1-\rho}{n}$$
+  $$\frac {Var(S_n)}  {\sigma^2} = \rho + \frac {1-\rho}{n}$$
 
 - if independent
 
-$$S_n \xrightarrow{as} \mu \quad \text{and} \quad \frac {S_n-\mu} {\sigma / \sqrt n} \xrightarrow{d} N(0, 1)$$
+  $$S_n \xrightarrow{as} \mu \quad \text{and} \quad \frac {S_n-\mu} {\sigma / \sqrt n} \xrightarrow{d} N(0, 1)$$
 
 - if independent normal with bessel-corrected sample variance $\hat{\sigma}^2$
 
-$$\frac {S_n-\mu} {\hat{\sigma} / \sqrt n} \sim t_{n-1}$$
-
+  $$\frac {S_n-\mu} {\hat{\sigma} / \sqrt n} \sim t_{n-1}$$
 
 Entropy:
 
@@ -189,11 +183,9 @@ Point estimate or statistic : $\hat{w} = g(X)$
 
 MLE estimator: $\hat{w} = argmax_w P(X|w)$
 
-
 Bias of estimator: $Bias(\hat{w})= E[\hat{w}] - w$
 
 MSE of estimator: $E[(\hat{w} - w)^2] = Bias(\hat{w})^2 + Var(\hat{w})$
-
 
 Examples:
 
@@ -212,7 +204,7 @@ Statistics are also used to test the hypotheses made on the data:
 
 1. Decide which test is appropriate and state the relevant test statistic T.
 
-1. Derive, considering the assumptions, the distribution of T under $H_0$. 
+1. Derive, considering the assumptions, the distribution of T under $H_0$.
 
 1. Select a significance level ($\alpha$), a probability threshold below which the null hypothesis will be rejected.
 
@@ -222,7 +214,7 @@ Statistics are also used to test the hypotheses made on the data:
 
 1. Reject $H_0$, in favor of $H_1$, if and only if the p-value is less than the significance level.
 
-Note that the p-values, if $H_0$ is true, are uniformly distributed in [0, 1]. 
+Note that the p-values, if $H_0$ is true, are uniformly distributed in [0, 1].
 
 Proof: we have $Pval(t) = P(T < t) = F_T(t)$, so under $H_0$, $Pval \sim F_T(T) \sim U(0, 1)$.
 
@@ -387,20 +379,20 @@ Proof: $\log P(X|w) = E_q \log P(X|w) = E_q \log \frac {P(X, Z|w) q(Z)}{P(Z|X, w
 Then we optimize sequentially on $q(Z)$ and $w$:
 
 - E-step:
-    - we minimize the second term down to 0 by setting $q(Z) = p(Z|X, w)$
-    - the log likelihood does not change (it does not depend on $q(Z)$)
-    - the first term is maximized up to the log likelihood
-- M-step: 
-    - we maximize the first term on $w$
-    - the second term increases (it is a KL starting at at 0)
-    - the log likelihood increases
+  - we minimize the second term down to 0 by setting $q(Z) = p(Z|X, w)$
+  - the log likelihood does not change (it does not depend on $q(Z)$)
+  - the first term is maximized up to the log likelihood
+- M-step:
+  - we maximize the first term on $w$
+  - the second term increases (it is a KL starting at at 0)
+  - the log likelihood increases
 
 The EM can be view as coordinate ascent on the first term, which is a lower bound of our objective.
 
-Further reading: 
+Further reading:
 
 - Bishop
-- [http://cs229.stanford.edu/notes/cs229-notes8.pdf]
+- <http://cs229.stanford.edu/notes/cs229-notes8.pdf>
 
 # Supervised models
 
@@ -471,13 +463,11 @@ $$\hat{w} =  argmin_w NLL(w) $$
 
 $$NLL'(w) = -X^T(y-\mu)$$
 
-
 ## Softmax regression
 
 $$y \sim Cat(\mu_k)$$
 $$P(y | x, w) = \prod \mu_k^{[y = k]} $$
 $$\mu_k = \frac {\exp w_k^T x}{\sum_l \exp w_l^T x}$$
-
 
 ## GLM
 
@@ -485,7 +475,7 @@ Remember the linear and logistic regression models:
 
 - $y|x \sim \mathcal{N} (\mu, \sigma^2)$
 - $y|x \sim Ber (\mu)$
- 
+
 GLMs are generalizations of these, where the output density is in the exponential family:
 
 $$p(y; \eta) = b(y) \exp(\eta^T T(y) - a(\eta))$$
@@ -659,7 +649,7 @@ Adam:
 
 Learning rate decay:
 
-- $t$ = epoch number 
+- $t$ = epoch number
 - $\alpha / \alpha_0 = (1 + rt)^{-1}$ or $r^t$ or $rt^{-1/2}$
 
 Local optima:
@@ -720,7 +710,7 @@ with $n^{[l]} = \lfloor (n^{[l-1]} + 2p^{[l]} - f^{[l]})/s^{[l]} \rfloor + 1$
 Pooling:
 
 - Take max instead of weighted sum
-- No weights to learn 
+- No weights to learn
 - Applies to each channel
 - Common choice f=s=2, p=0
 - Averaging instead of max is possible
@@ -815,8 +805,8 @@ Avoid duplicate detections
 - Suppose output is (pc, bx, by, bh, bw) for each 19x19 subimage
 - Discard all boxes with pc < 0.6
 - Repeat until no more boxes:
-    - Pick the box B with max pc
-    - Discard boxes overlaping with B (IoU > 0.5)  
+  - Pick the box B with max pc
+  - Discard boxes overlaping with B (IoU > 0.5)  
 
 Overlapping objects
 
@@ -838,13 +828,13 @@ Face detection
 
 Take the problem of NER in a phrase. It does not fit very well into a standard DNN because:
 
-- inputs / outputs can be of different length $T_x <> T_y$ 
+- inputs / outputs can be of different length $T_x <> T_y$
 - features can be learned accross different positions of text
 - the number of parameters would be huge
 
 RNN have the following structure:
 
-```
+```text
         | a0 = 0
         v
 x1 -> |ooo| -> y1
@@ -869,7 +859,6 @@ The forward propagation is formally:
 $$a^{<1>} = g(W_a [a^{<0>}, x^{<1>}] + b_a)$$
 
 $$\hat y^{<1>} = g(W_y a^{<1>} + b_y)$$
-
 
 - The parameters W are shared accross all time steps
 - The brackets indicate vertical stacking of vectors
@@ -947,7 +936,6 @@ $$c^{<t>} = \Gamma_u * \tilde{c}^{<t>} + \Gamma_f * c^{<t-1>}$$
 
 $$a^{<t>} = \Gamma_o * \tanh c^{<t>}$$
 
-
 GRU are more recent but actually a simplification of LSTM. They are a bit more scalable because more simple.
 
 BRNN
@@ -960,7 +948,6 @@ Deep RNN
 
 - Instead of having just one activation between x and y, several activation layers can be stacked in between
 - Only a few layers are used in practice
-
 
 Word embeddings
 
@@ -1016,9 +1003,8 @@ Debiasing word embeddings
 1. Identify bias direction by averaging he - she, male - female etc...
 1. Project every non definitional word to get rid of bias
 1. Equalize grandmother - grandfather = girl - boy = ...
- 
- 
-Attention model...
+
+Attention model... TODO
 
 ## Deep Learning Project Management
 
@@ -1056,15 +1042,15 @@ When to change dev/test set or metrics
 Human level performance
 
 - improvment tends to slow down above human level
-    - because of bayes optimal perf
-    - because you can no longer ask humans for help!
+  - because of bayes optimal perf
+  - because you can no longer ask humans for help!
 - human level is a good proxy for bayes error
 - aim for best human level error on your training set (remove avoidable bias), then work on dev set (remove variance)
 - hard to beat on perception tasks
 
 Summary
 
-```
+```text
 Human-level
 ^
 |  Avoidable bias <- bigger model/train longer/optimizer/archi
@@ -1114,8 +1100,7 @@ Data mismatch
 - for example, your dev/test sets may contain "in car background noise", so you can try simulating this kind of background noise in your training set
 - when synthetizing data, be careful not to make the training data too specialized (eg by using only one hour of car noise to add to 10,000 hours of speech, or using image synthesis software), thus impoverishing the training data and you will probably overfit
 
-
-```
+```text
 Human-level
 ^
 |  Avoidable bias <- bigger model/train longer/optimizer/archi
@@ -1148,19 +1133,19 @@ Multi-task learning
 - task may share low level features
 - works better is amount of data is similar in each task
 - you need enough data to train one big NN
-- not used very often, mostly on computer vision 
+- not used very often, mostly on computer vision
+- can be cast into binary classification: does this input x have label y?
 
 End to end deep learning
 
 - direct mapping from x to y in constrast to traditional pipelined approach
 - no need for hand designed components and kwnoledge
 - can work better if you have enough data:
-    - speech recognition: sound -> transcript
-    - translation: english -> french
+  - speech recognition: sound -> transcript
+  - translation: english -> french
 - not always better
-    - identification = face detection + face identification
-    - self driving = object detection + motion planning + control
-
+  - identification = face detection + face identification
+  - self driving = object detection + motion planning + control
 
 ## Support Vector Machines
 
@@ -1210,10 +1195,9 @@ which makes it similar to logistic regression that uses the log loss:
 
 $$L(y, z) = \log(1 + \exp(- yz))$$
 
-
-
 Further reading:
-- [http://cs229.stanford.edu/notes/cs229-notes-all/cs229-notes3.pdf]
+
+- [<http://cs229.stanford.edu/notes/cs229-notes-all/cs229-notes3.pdf>>
 
 ## Decision Tree
 
@@ -1233,8 +1217,8 @@ In practice the $c_m$ are implicited and the objective used to drive the splits 
 
 $$\tilde J(w) = \sum_m N_m H(\{y_i | x_i \in R_m\})$$
 
-where H is a measure of impurity or randomness like gini or entropy (we want to minimize impurity), computed on the class frequencies $p_k$ (Gini is $\sum_k p_k(1-p_k)$, similar to entropy). 
-Misclassification rate is generally not used because it is not differentiable and is indifferent to error repartition (gini and entropy will favor pure nodes, for convexity reasons). 
+where H is a measure of impurity or randomness like gini or entropy (we want to minimize impurity), computed on the class frequencies $p_k$ (Gini is $\sum_k p_k(1-p_k)$, similar to entropy).
+Misclassification rate is generally not used because it is not differentiable and is indifferent to error repartition (gini and entropy will favor pure nodes, for convexity reasons).
 
 When a region R is splitted in R+ and R-, the objective decrease proportionally to the "information gain", so this is the criterion that is maximized for choosing the split:
 
@@ -1251,22 +1235,23 @@ Further reading:
 - ESL
 - [misclassification error vs entropy](https://sebastianraschka.com/faq/docs/decisiontree-error-vs-entropy.html)
 
-
 ## Random Forest
 
 RF is bagging (bootstrap aggregating) applied to trees:
 
 ---
+
 - for b = 1 to B:
-    - draw a bootstrap sample Z from X, of the same size
-    - create root tree $T_b$
-    - for each leaf in $T_b$
-        - select m < p variables at random
-        - select the best split variable and split point for Z
-        - split the leaf into two new leaves
-        - stop if size($T_b$) >= min_size
-    - store $T_b$
+  - draw a bootstrap sample Z from X, of the same size
+  - create root tree $T_b$
+  - for each leaf in $T_b$
+    - select m < p variables at random
+    - select the best split variable and split point for Z
+    - split the leaf into two new leaves
+    - stop if size($T_b$) >= min_size
+  - store $T_b$
 - $f(x) = \frac 1 B \sum_b T_b(x)$
+
 ---
 
 For classification the class probability (proportion of each class in the selected leaf) are averaged.
@@ -1294,12 +1279,14 @@ Gradient boosting can be seen as an algorithm for stage-wise additive modeling w
 The stage-wise additive modeling algorithm is:
 
 ---
+
 - Initialize $f_0(x)=0$
 - For m = 1 to M:
-    
-$$ (\alpha_m, \beta_m) = arg \min_{\alpha, \beta} \sum_i L(y_i, f_{m-1}(x_i) + \alpha B(x_i, \beta)) $$
+
+$$(\alpha_m, \beta_m) = arg \min_{\alpha, \beta} \sum_i L(y_i, f_{m-1}(x_i) + \alpha B(x_i, \beta))$$
 
 $$f_m(x) = f_{m-1}(x) + \alpha_m B(x_i, \beta_m)) $$
+
 ---
 
 Depending on the loss function and the base learner B, the minimization above can be hard or not implemented. 
@@ -1317,18 +1304,20 @@ Note that the standard technique of fitting the new learner on the residuals $y_
 Gradient boosted trees apply this to trees:
 
 ---
+
 - Initialize $f_0(x) = argmin_c \sum_i L(y_i, c)$
 - For m = 1 to M:
-    - For each data point i, compute 
-    
+  - For each data point i, compute 
+
     $$r_{im} = - \frac{\partial L(y_i, c)}{\partial c} (f_{m-1}(x_i))$$
 
-    - Fit a new L2 regression tree $T_m$ of size J on $\{x_i, r_{im}\}$
-    - For each leaf j of $T_m$, adjust the predicted value to optimize the real loss
-    
+  - Fit a new L2 regression tree $T_m$ of size J on $\{x_i, r_{im}\}$
+  - For each leaf j of $T_m$, adjust the predicted value to optimize the real loss
+
     $$c_{jm} = argmin_c \sum_{x_i \in R_{jm}} L(y_i, f_{m-1}(x_i) + c)$$
 
-    - Update $f_m(x) = f_{m-1}(x_i) + \nu T_m$
+  - Update $f_m(x) = f_{m-1}(x_i) + \nu T_m$
+
 ---
 
 The hyper-parameters are:
@@ -1344,14 +1333,12 @@ Stochastic gradient boosting borrows from random forest: it is the same as GBT b
 Further reading:
 
 - ESL
-- https://statweb.stanford.edu/~jhf/ftp/trebst.pdf
-- https://xgboost.readthedocs.io/en/latest/tutorials/model.html
-
+- <https://statweb.stanford.edu/~jhf/ftp/trebst.pdf>
+- <https://xgboost.readthedocs.io/en/latest/tutorials/model.html>
 
 ## AdaBoost
 
-# todo
-
+TODO
 
 # Unsupervised models
 
@@ -1410,11 +1397,11 @@ $$w \sim (\Sigma_0 + \Sigma_1)^{-1} (\mu_1 - \mu_0)$$
 
 ## Factor Analysis
 
-See [http://cs229.stanford.edu/notes/cs229-notes9.pdf]
+See <http://cs229.stanford.edu/notes/cs229-notes9.pdf>
 
 ## Independent Component Analysis
 
-See [http://cs229.stanford.edu/notes/cs229-notes11.pdf]
+See <http://cs229.stanford.edu/notes/cs229-notes11.pdf>
 
 ## K Means clustering
 
@@ -1427,8 +1414,7 @@ This procedure is equivalent to coordinate descent on:
 
 $$J(c, \mu) = \sum_i \| x_i - \mu_{ci}\|$$
 
-See [http://cs229.stanford.edu/notes/cs229-notes7a.pdf]
-
+See <http://cs229.stanford.edu/notes/cs229-notes7a.pdf>
 
 ## Gaussian Mixture Model
 
@@ -1444,12 +1430,11 @@ $$\mu_j := \frac {\sum_i w_j^{(i)} x^{(i)}} {\sum_i w_j^{(i)}}$$
 
 $$\sigma_j := \frac {\sum_i w_j^{(i)} (x^{(i)} - \mu_j) (x^{(i)} - \mu_j)^T} {\sum_i w_j^{(i)}}$$
 
-See [http://cs229.stanford.edu/notes/cs229-notes8.pdf]
-
+See <http://cs229.stanford.edu/notes/cs229-notes8.pdf>
 
 ## T-SNE
 
-todo
+TODO
 
 ## Hierarchical clustering
 
@@ -1464,7 +1449,7 @@ Similarity is defined by a metric and a linkage criteria:
 - increase in variance when cluster are merged
 - ...
 
-[https://en.wikipedia.org/wiki/Hierarchical_clustering]
+<https://en.wikipedia.org/wiki/Hierarchical_clustering>
 
 ## DBSCAN clustering
 
@@ -1478,8 +1463,7 @@ Clusters are made of connected core points and their edge points
 
 Complexity $n \log n, n$
 
-[https://en.wikipedia.org/wiki/DBSCAN]
-
+<https://en.wikipedia.org/wiki/DBSCAN>
 
 ## Latent Dirichlet Allocation
 
@@ -1543,7 +1527,7 @@ MA(q=2):
 
 ARMA(p, q):
 
-- ACF and PACF will tail off 
+- ACF and PACF will tail off
 - Try several p and q
 - Compare with AIC
 
@@ -1634,8 +1618,7 @@ If the state space is continuous and low dimensional, it can be discretized and 
 
 If the state space is continuous and high dimensional we can approximate the value function by supervised learning. In this case a model P or simulator of P is important, as we need a lot of samples to train. The simulator can be based on the laws of physics (for a physical problem) or learned from experience by supervised learning. 
 
-[http://cs229.stanford.edu/notes/cs229-notes-all/cs229-notes12.pdf]
-
+<http://cs229.stanford.edu/notes/cs229-notes-all/cs229-notes12.pdf>
 
 # Stanford CS229
 
@@ -1674,4 +1657,3 @@ If the state space is continuous and high dimensional we can approximate the val
 [Loss functions*](http://cs229.stanford.edu/notes/cs229-notes-all/loss-functions.pdf)
 
 [Representer theorem*](http://cs229.stanford.edu/notes/cs229-notes-all/representer-function.pdf)
-
